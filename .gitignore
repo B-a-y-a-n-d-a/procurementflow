@@ -1,8 +1,17 @@
+# Dependencies & builds
 node_modules/
+frontend/dist/
+backend/target/
 build/
-dist/
 coverage/
-.DS_Store
-*.log
+
+# Environment (keep the examples)
 .env*
 !.env.example
+
+# IDE / OS
+.idea/
+*.iml
+.vscode/
+.DS_Store
+*.log

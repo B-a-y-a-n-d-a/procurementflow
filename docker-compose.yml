@@ -1,0 +1,61 @@
+# CIVICFLOW - full stack: MySQL 8 + Spring Boot API + React (nginx)
+#   docker compose up --build        ->  http://localhost:3000
+# Optional overrides live in a root .env file (see .env.example).
+name: civicflow
+
+services:
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: civicflow
+      MYSQL_USER: ${DB_USER:-civicflow}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-civicflow}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-civicflow-root}
+      TZ: UTC
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p$${MYSQL_ROOT_PASSWORD} --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+
+  backend:
+    build:
+      context: ./backend
+      args:
+        SKIP_TESTS: "true"   # tests run with ./mvnw verify; keep image builds fast
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: civicflow
+      DB_USER: ${DB_USER:-civicflow}
+      DB_PASSWORD: ${DB_PASSWORD:-civicflow}
+      SEED_ON_STARTUP: "true"
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
+      CORS_ALLOWED_ORIGINS: http://localhost:3000,http://localhost:5173
+    ports:
+      - "${BACKEND_PORT:-8081}:8080"
+
+  frontend:
+    build:
+      context: ./frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+
+volumes:
+  mysql-data:

@@ -127,7 +127,7 @@ Derived: `CLOSING_SOON`.
 | --- | --- | --- |
 | id | PK | |
 | opportunity_id | FK → InnovationOpportunity | |
-| key | enum `CriterionKey` | PRICE, TECHNICAL, SUITABILITY, LOCAL, BBBEE, EXPERIENCE, IMPLEMENTATION |
+| criterion_key | enum `CriterionKey` | PRICE, TECHNICAL, SUITABILITY, LOCAL, BBBEE, EXPERIENCE, IMPLEMENTATION |
 | name | varchar | |
 | weight_pct | decimal | Σ = 100 per opportunity (BR-06) |
 | scoring_method | enum `AUTO_PRICE`/`AUTO_BBBEE`/`AUTO_LOCAL`/`MANUAL` | |
@@ -269,7 +269,7 @@ Location is derived through PO → request → need.
 | created_by | FK → AppUser | |
 Derived: current value (latest measurement), change %, progress to target, status (BR-15).
 
-**ImpactMeasurement**: `id` PK, `metric_id` FK, `value`, `measured_at`, `evidence_url`, `note`, `ward` (nullable), `recorded_by` FK → AppUser.
+**ImpactMeasurement**: `id` PK, `metric_id` FK, `measured_value`, `measured_at`, `evidence_url`, `note`, `ward` (nullable), `recorded_by` FK → AppUser.
 
 ### 1.6 Cross-cutting
 
@@ -506,7 +506,7 @@ erDiagram
     EvaluationCriterion {
         string id PK
         string opportunity_id FK
-        string key
+        string criterion_key
         string name
         decimal weight_pct
         string scoring_method
@@ -656,7 +656,7 @@ erDiagram
     ImpactMeasurement {
         string id PK
         string metric_id FK
-        decimal value
+        decimal measured_value
         datetime measured_at
         string evidence_url
         text note
