@@ -194,7 +194,7 @@ public class ImplementationService {
             impl.setProgressPct(in.progressPct());
         }
         if (EnumSet.of(ImplementationStatus.NOT_STARTED, ImplementationStatus.PLANNED).contains(impl.getStatus())
-                && in.type() == UpdateType.PROGRESS) {
+                && (in.type() == UpdateType.PROGRESS || in.type() == UpdateType.EVIDENCE)) {
             impl.setStatus(ImplementationStatus.IN_PROGRESS);
         }
         implementations.save(impl);

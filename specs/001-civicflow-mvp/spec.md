@@ -59,7 +59,7 @@ Deliver the single end-to-end vertical slice **need → approval → opportunity
 - Starting the evaluation sets the opportunity to `EVALUATION` and moves non-withdrawn submissions to `UNDER_REVIEW`.
 - The auto scores: price = `min eligible price ÷ price × 100`, B-BBEE from the table, local from the municipality/province match. Each comes with a human-readable `basis` string.
 - Manual scores are 0–100 and need a rationale. Completing an evaluation requires every manual criterion to be scored.
-- **Given** the seeded OPP-2026-007 with default weights and manual scores (CleanSight 90/90, EcoVision 75/80, GlobalTech 70/60), **then** the totals are **90.00, 84.42, 76.00**, and CleanSight is `recommendedSubmissionId`.
+- **Given** the seeded OPP-2026-003 (Illegal Dumping) with default weights and manual scores (CleanSight 90/90, EcoVision 75/80, GlobalTech 70/60), **then** the totals are **90.00, 84.42, 76.00**, and CleanSight is `recommendedSubmissionId`.
 - The board never selects on its own.
 
 ### US-08 Selection, supplier onboarding, PO (FR-072–FR-074, BR-04, BR-05, BR-13) · MUST

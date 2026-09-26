@@ -59,27 +59,30 @@ Legend: `[x]` done · `[ ]` open (tracked as a GitHub issue) · **[P]** can run 
 
 ## Phase 5: Verification & delivery
 - [x] T070 `mvnw verify` green, `npm run lint` + `npm run build` green
-- [ ] T071 `docker compose up --build` from clean; click through the judge demo end to end
-- [ ] T072 README (monorepo, Docker, dev loop, personas, demo script), docs index
-- [ ] T073 GitHub: close obsolete ProcureFlow issues, file the open tasks below as issues
+- [x] T071 `docker compose up --build` from clean; click through the judge demo end to end
+- [x] T072 README (monorepo, Docker, dev loop, personas, demo script), docs index
+- [x] T073 GitHub: close obsolete ProcureFlow issues, file the open tasks below as issues
 
 ## Open (post-MVP backlog → GitHub issues)
-- [ ] T100 Real authentication (OIDC/Keycloak) replacing the demo header (SEC-05)
-- [ ] T101 CI pipeline (GitHub Actions: `mvnw verify`, frontend lint/build, docker build). Needs a token with `workflow` scope.
-- [ ] T102 File uploads for attachments/evidence (MinIO/S3) instead of links
-- [ ] T103 Email/SMS notifications (FR-120 extension)
-- [ ] T104 Multiple evaluators per submission UI + conflict-of-interest declarations (FR-063, BR-09)
-- [ ] T105 Provider self-registration & profile editing flow (FR-040)
-- [ ] T106 CSD / SARS tax-status verification integration (FR-073)
-- [ ] T107 Procurement value by location table + map heat layer (FR-102)
-- [ ] T108 Public citizen transparency portal (read-only journeys + impact)
-- [ ] T109 Anchor audit chain head hash to a public ledger (Blockchain for Impact extension)
-- [ ] T110 Frontend automated tests (Vitest + Testing Library) for key flows
-- [ ] T111 Accessibility audit (WCAG 2.1 AA) & fixes (NFR-02)
-- [ ] T112 Journey/audit CSV export
-- [ ] T113 Testcontainers-based MySQL integration tests (replace H2 in CI)
-- [ ] T114 Enforce B-BBEE certificate expiry in evaluation & supplier verification (BR-17)
-- [ ] T115 Upgrade Flyway (MySQL 8.4 "newer than supported" warning)
-- [ ] T116 Choose and add an open-source licence (Open Source Agenda)
-- [ ] T117 Judge demo rehearsal checklist & backup video
-- [ ] T118 Rename the repository to `civicflow`
+- [ ] T100 Real authentication (OIDC/Keycloak) replacing the demo header (SEC-05) (#34)
+- [ ] T101 CI pipeline (GitHub Actions: `mvnw verify`, frontend lint/build, docker build). Needs a token with `workflow` scope. (#13)
+- [ ] T102 File uploads for attachments/evidence (MinIO/S3) instead of links (#14)
+- [ ] T103 Email/SMS notifications (FR-120 extension) (#15)
+- [ ] T104 Multiple evaluators per submission UI + conflict-of-interest declarations (FR-063, BR-09) (#16)
+- [ ] T105 Provider self-registration & profile editing flow (FR-040) (#17)
+- [ ] T106 CSD / SARS tax-status verification integration (FR-073) (#18)
+- [ ] T107 Procurement value by location table + map heat layer (FR-102) (#19)
+- [ ] T108 Public citizen transparency portal (read-only journeys + impact) (#20)
+- [ ] T109 Anchor audit chain head hash to a public ledger (Blockchain for Impact extension) (#21)
+- [ ] T110 Frontend automated tests (Vitest + Testing Library) for key flows (#22)
+- [ ] T111 Accessibility audit (WCAG 2.1 AA) & fixes (NFR-02) (#23)
+- [ ] T112 Journey/audit CSV export (#24)
+- [ ] T113 Testcontainers-based MySQL integration tests (replace H2 in CI) (#25)
+- [ ] T114 Enforce B-BBEE certificate expiry in evaluation & supplier verification (BR-17) (#26)
+- [ ] T115 Upgrade Flyway (MySQL 8.4 "newer than supported" warning) (#27)
+- [ ] T116 Choose and add an open-source licence (Open Source Agenda) (#28)
+- [ ] T117 Judge demo rehearsal checklist & backup video (#29)
+- [ ] T118 Rename the repository to `civicflow` (#30)
+- [ ] T119 Reject impact measurements dated in the future (or after implementation completion); adjust the judge demo seed so the hero implementation starts ~3 months in the past (#31)
+- [ ] T120 Confirmation dialog before "Mark completed" on an implementation (irreversible) (#32)
+- [ ] T121 Code-split the frontend bundle (697 kB; lazy-load routes and Leaflet) (#33)

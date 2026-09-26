@@ -16,6 +16,7 @@ Built for the **Geekulcha hackathon, *Gov Innovation Platform* challenge**. It e
 | **Stack** | Java 21 · Spring Boot 3.5 · Maven · MySQL 8.4 · Flyway · React 19 · TypeScript · Vite · Tailwind 4 · Leaflet · Docker Compose |
 | **Method** | Spec-Driven Development: [constitution](specs/constitution.md) → [product docs](docs/product/) → [spec](specs/001-civicflow-mvp/spec.md) → [plan](specs/001-civicflow-mvp/plan.md) → [API contract](specs/001-civicflow-mvp/contracts/api.md) → [tasks](specs/001-civicflow-mvp/tasks.md) → code |
 | **Demo** | Fictional municipality "Mzansi Metro". Persona login (no passwords). A 7-minute [judge demo script](docs/product/05-judge-demo.md) |
+| **Status** | MVP complete (T001–T073 in [tasks](specs/001-civicflow-mvp/tasks.md)). Backend tests, frontend lint/build and the full judge demo verified on the Docker stack. Post-MVP work is tracked in [issues](../../issues) |
 
 ---
 
