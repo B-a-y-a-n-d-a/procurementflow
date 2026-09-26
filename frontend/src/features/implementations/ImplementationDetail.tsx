@@ -130,9 +130,11 @@ function ManagePanel({ d, onChange }: { d: ImplementationDetailDto; onChange: (d
     const r = await patch.run(body);
     if (r) onChange(r);
   };
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const openMilestones = d.milestones.filter((m) => !m.completedAt).length;
   const finish = async () => {
     const r = await complete.run();
-    if (r) onChange(r);
+    if (r) { setConfirmOpen(false); onChange(r); }
   };
 
   const statusOptions = EDITABLE_STATUSES.includes(d.status) ? EDITABLE_STATUSES : [d.status, ...EDITABLE_STATUSES];
@@ -152,7 +154,7 @@ function ManagePanel({ d, onChange }: { d: ImplementationDetailDto; onChange: (d
           <Button variant="secondary" icon={<Save size={16} />} loading={patch.loading} disabled={!dirty || !!progressErr} onClick={save}>Save</Button>
         </div>
         <div className="flex flex-col items-start gap-1 border-t border-slate-100 pt-3 lg:items-end lg:border-l lg:border-t-0 lg:pl-4 lg:pt-0">
-          <Button icon={<CheckCircle2 size={16} />} loading={complete.loading} disabled={!d.hasEvidence} onClick={finish}
+          <Button icon={<CheckCircle2 size={16} />} loading={complete.loading} disabled={!d.hasEvidence} onClick={() => setConfirmOpen(true)}
             title={d.hasEvidence ? undefined : 'Add a delivery evidence update first'}>
             Mark completed
           </Button>
@@ -163,6 +165,21 @@ function ManagePanel({ d, onChange }: { d: ImplementationDetailDto; onChange: (d
         <div className="mt-3"><Callout tone="warning">Setting <strong>At risk</strong> notifies executives and is recorded in the audit log.</Callout></div>
       )}
       {(patch.error || complete.error) && <div className="mt-3"><ErrorBanner error={patch.error ?? complete.error} /></div>}
+
+      <Modal open={confirmOpen} onClose={() => setConfirmOpen(false)} title="Mark implementation completed?"
+        subtitle={`${d.poNumber} · ${d.supplierName} · ${d.needTitle}`}
+        footer={<>
+          <Button type="button" variant="secondary" onClick={() => setConfirmOpen(false)} disabled={complete.loading}>Cancel</Button>
+          <Button type="button" icon={<CheckCircle2 size={16} />} loading={complete.loading} onClick={finish}>Mark completed</Button>
+        </>}>
+        <div className="space-y-3">
+          <p className="text-sm text-slate-600">This closes purchase order {d.poNumber} and locks delivery: no further milestones, updates or status changes. It is recorded in the audit log and can't be undone. Impact measurements can still be recorded afterwards.</p>
+          {openMilestones > 0 && (
+            <Callout tone="warning">{openMilestones} of {d.milestones.length} milestone{d.milestones.length === 1 ? '' : 's'} not yet marked done.</Callout>
+          )}
+          {complete.error && <ErrorBanner error={complete.error} />}
+        </div>
+      </Modal>
     </Card>
   );
 }
