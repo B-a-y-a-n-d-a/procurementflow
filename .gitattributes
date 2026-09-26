@@ -1,0 +1,7 @@
+# Normalise line endings so scripts run inside Linux Docker containers
+* text=auto eol=lf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+*.jar binary
+*.png binary
+*.jpg binary
