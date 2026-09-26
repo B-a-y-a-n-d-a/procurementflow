@@ -1,136 +1,173 @@
-import { useMemo, useState } from 'react';
-import { ArrowRight, Info } from 'lucide-react';
-import { api } from '../../api/client';
-import type { UserDto, UserRole } from '../../api/types';
+import { useRef, useState } from 'react';
+import {
+  ArrowRight, Building2, ClipboardList, Eye, Gavel, Landmark, Lightbulb, LineChart, LogIn, ScrollText, ShieldCheck, Sparkles, Users, Wrench,
+} from 'lucide-react';
 import { useAuth } from '../../app/auth';
-import { useApi } from '../../lib/hooks';
-import { ROLE_LABEL } from '../../lib/labels';
-import { Avatar, Badge, ErrorBanner, Loading } from '../../components/ui';
+import { Button, ErrorBanner, Field, Input } from '../../components/ui';
 
-/** The judge-demo cast, in lifecycle order (see docs/product/05-judge-demo.md). */
-const CAST: { id: string; step: string }[] = [
-  { id: 'u-thandi', step: '1 · Records the public need' },
-  { id: 'u-sipho', step: '2 · Approves (Department Manager)' },
-  { id: 'u-lerato', step: '3 · Approves high-value spend' },
-  { id: 'u-johan', step: '4 · Publishes, evaluates, issues PO' },
-  { id: 'u-nomsa', step: '5 · Local SME submits a solution' },
-  { id: 'u-ayesha', step: '6 · Sees investment → impact' },
-  { id: 'u-grace', step: '7 · Verifies the audit trail' },
-  { id: 'u-lindiwe', step: 'Admin · rules & demo reset' },
+const LIFECYCLE = [
+  { icon: ClipboardList, title: 'Public need', text: 'Departments document the problem first, with a live budget check and a rule-based approval route.' },
+  { icon: Lightbulb, title: 'Local innovation', text: 'Approved needs become open opportunities that local SMEs, co-operatives and open-source projects can answer.' },
+  { icon: Gavel, title: 'Transparent procurement', text: 'Published, weighted criteria. The system ranks and recommends; a person decides and justifies any deviation.' },
+  { icon: Wrench, title: 'Implementation', text: 'Purchase orders open a delivery record with milestones, updates and evidence.' },
+  { icon: LineChart, title: 'Measurable impact', text: 'Outcomes are measured against a baseline and target, so every rand is linked to what changed.' },
 ];
 
-const ROLE_GROUPS: UserRole[] = ['DEPARTMENT_OFFICER', 'DEPARTMENT_MANAGER', 'FINANCE_DIRECTOR', 'PROCUREMENT_OFFICER', 'PROVIDER', 'EXECUTIVE', 'AUDITOR', 'ADMIN'];
+const AUDIENCES = [
+  { icon: Building2, title: 'Departments', text: 'Record needs, track budgets and manage delivery.' },
+  { icon: Landmark, title: 'Finance & approvers', text: 'Approve within SLA, routed by configurable thresholds.' },
+  { icon: Gavel, title: 'Procurement', text: 'Publish, evaluate, verify suppliers and issue POs.' },
+  { icon: Users, title: 'Local providers', text: 'Discover opportunities and submit solutions.' },
+  { icon: Eye, title: 'Executives', text: 'See investment against outcomes across the organisation.' },
+  { icon: ScrollText, title: 'Auditors', text: 'Follow every decision in a tamper-evident log.' },
+];
+
+const PRINCIPLES = [
+  { icon: ShieldCheck, title: 'Tamper-evident audit trail', text: 'Every lifecycle event is SHA-256 hash-chained and can be verified at any time.' },
+  { icon: Sparkles, title: 'AI assists, humans decide', text: 'CIVIC AI drafts and summarises from platform records. It never approves, scores or selects.' },
+  { icon: ClipboardList, title: 'Rules as configuration', text: 'Thresholds, SLAs and evaluation weights are versioned organisational settings, not hard-coded.' },
+];
 
 export default function LoginPage() {
   const { login } = useAuth();
-  const personas = useApi(() => api.get<UserDto[]>('/auth/personas'));
-  const [busy, setBusy] = useState<string | null>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const howRef = useRef<HTMLElement>(null);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const byId = useMemo(() => new Map((personas.data ?? []).map((u) => [u.id, u])), [personas.data]);
-  const others = (personas.data ?? []).filter((u) => !CAST.some((c) => c.id === u.id));
+  // In-page scrolling uses refs: the app's hash router owns location.hash.
+  const goToSignIn = () => {
+    emailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    emailRef.current?.focus({ preventScroll: true });
+  };
 
-  const pick = async (id: string) => {
-    setBusy(id);
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
     setError(null);
     try {
-      await login(id);
-    } catch (e) {
-      setError(e as Error);
-      setBusy(null);
+      await login({ email: email.trim(), password });
+    } catch (err) {
+      setError(err as Error);
+      setBusy(false);
     }
   };
 
   return (
-    <div className="min-h-full bg-gradient-to-br from-brand-950 via-brand-900 to-brand-800">
-      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-10 sm:px-6 lg:grid-cols-5 lg:py-16">
-        <div className="text-white lg:col-span-2">
+    <div className="min-h-full bg-slate-50">
+      <header className="bg-brand-950 text-white">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/20">
-              <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M4 13l5 5L20 7" /></svg>
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/20">
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M4 13l5 5L20 7" /></svg>
             </div>
-            <span className="text-xl font-extrabold tracking-tight">CIVICFLOW</span>
+            <span className="text-lg font-extrabold tracking-tight">CIVICFLOW</span>
           </div>
-          <h1 className="mt-8 text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl">
-            From Public Need to <span className="text-gold-400">Measurable Impact.</span>
-          </h1>
-          <p className="mt-4 text-sm leading-relaxed text-brand-100">
-            A public innovation, procurement and impact management platform. It connects public-sector problems with local
-            solutions, runs transparent procurement, tracks implementation and measures real-world outcomes.
-          </p>
-          <ol className="mt-8 space-y-2 text-sm text-brand-50">
-            {['Public need', 'Local innovation', 'Transparent procurement', 'Implementation', 'Measurable impact'].map((s, i) => (
-              <li key={s} className="flex items-center gap-3">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10 text-xs font-bold ring-1 ring-white/20">{i + 1}</span>
-                {s}
-              </li>
-            ))}
-          </ol>
-          <div className="mt-10 flex items-start gap-2 rounded-xl bg-white/5 p-4 text-xs text-brand-100 ring-1 ring-white/10">
-            <Info size={16} className="mt-0.5 shrink-0 text-gold-400" />
-            <span>
-              <strong className="text-white">Demo sign-in.</strong> Pick a persona. There are no passwords, and every request carries the
-              persona in an <code className="font-mono">X-Demo-User</code> header. All organisations and people are fictional
-              (Mzansi Metro).
-            </span>
-          </div>
+          <button onClick={goToSignIn} className="flex items-center gap-1.5 rounded-lg bg-white/10 px-3 py-1.5 text-sm font-semibold ring-1 ring-white/20 hover:bg-white/20">
+            <LogIn size={15} /> Sign in
+          </button>
         </div>
+      </header>
 
-        <div className="lg:col-span-3">
-          <div className="rounded-2xl bg-white p-5 shadow-2xl sm:p-6">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-base font-bold text-slate-900">Choose a persona</h2>
-              <Badge tone="gold">Judge demo cast</Badge>
+      <section className="bg-gradient-to-br from-brand-950 via-brand-900 to-brand-800">
+        <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 pb-16 pt-8 sm:px-6 lg:grid-cols-5 lg:pb-20 lg:pt-12">
+          <div className="text-white lg:col-span-3">
+            <p className="text-xs font-bold uppercase tracking-widest text-gold-400">Public innovation · procurement · impact</p>
+            <h1 className="mt-4 text-3xl font-extrabold leading-tight tracking-tight sm:text-5xl">
+              From Public Need to <span className="text-gold-400">Measurable Impact.</span>
+            </h1>
+            <p className="mt-5 max-w-xl text-base leading-relaxed text-brand-100">
+              CIVICFLOW connects public-sector problems with local solutions, runs transparent procurement, tracks
+              implementation and measures real-world outcomes, all in one accountable lifecycle.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Button variant="gold" icon={<LogIn size={16} />} onClick={goToSignIn}>Sign in to CIVICFLOW</Button>
+              <button onClick={() => howRef.current?.scrollIntoView({ behavior: 'smooth' })}
+                className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold text-white ring-1 ring-white/30 hover:bg-white/10">
+                How it works <ArrowRight size={15} />
+              </button>
             </div>
-            {personas.loading && <Loading label="Connecting to the CIVICFLOW API…" />}
-            <ErrorBanner error={personas.error ?? error} onRetry={personas.error ? personas.reload : undefined} />
-            {personas.data && (
-              <>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  {CAST.map((c) => {
-                    const u = byId.get(c.id);
-                    if (!u) return null;
-                    return (
-                      <button key={c.id} onClick={() => pick(c.id)} disabled={!!busy}
-                        className="group flex items-center gap-3 rounded-xl border border-slate-200 p-3 text-left transition hover:border-brand-400 hover:bg-brand-50/50 disabled:opacity-60">
-                        <Avatar name={u.fullName} />
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate text-sm font-semibold text-slate-900">{u.fullName}</span>
-                          <span className="block truncate text-[11px] text-slate-500">{ROLE_LABEL[u.role]}{u.departmentName ? ` · ${u.departmentName}` : u.providerName ? ` · ${u.providerName}` : ''}</span>
-                          <span className="mt-0.5 block text-[11px] font-medium text-brand-700">{c.step}</span>
-                        </span>
-                        <ArrowRight size={16} className="text-slate-300 group-hover:text-brand-600" />
-                      </button>
-                    );
-                  })}
-                </div>
-                <details className="mt-5">
-                  <summary className="cursor-pointer text-xs font-semibold text-slate-500 hover:text-slate-800">More personas ({others.length})</summary>
-                  <div className="mt-3 space-y-3">
-                    {ROLE_GROUPS.map((role) => {
-                      const group = others.filter((u) => u.role === role);
-                      if (group.length === 0) return null;
-                      return (
-                        <div key={role}>
-                          <div className="mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">{ROLE_LABEL[role]}</div>
-                          <div className="flex flex-wrap gap-1.5">
-                            {group.map((u) => (
-                              <button key={u.id} onClick={() => pick(u.id)} disabled={!!busy}
-                                className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs text-slate-700 hover:border-brand-400 hover:bg-brand-50">
-                                {u.fullName} <span className="text-slate-400">· {u.departmentName ?? u.providerName ?? ''}</span>
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </details>
-              </>
-            )}
+          </div>
+
+          <div className="lg:col-span-2">
+            <form onSubmit={submit} className="rounded-2xl bg-white p-6 shadow-2xl" aria-labelledby="signin-title">
+              <h2 id="signin-title" className="text-lg font-bold text-slate-900">Sign in</h2>
+              <p className="mt-1 text-xs text-slate-500">Use the work email and password issued by your administrator.</p>
+              <div className="mt-5 space-y-4">
+                {error && <ErrorBanner error={error} />}
+                <Field label="Email" required>
+                  <Input ref={emailRef} type="email" autoComplete="username" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@organisation.gov.za" />
+                </Field>
+                <Field label="Password" required>
+                  <Input type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+                </Field>
+                <Button type="submit" icon={<LogIn size={16} />} loading={busy} disabled={!email.trim() || !password} className="w-full justify-center">
+                  Sign in
+                </Button>
+              </div>
+              <p className="mt-4 text-[11px] leading-relaxed text-slate-400">
+                Staff and registered providers each have their own account. Access is limited to what your role allows.
+              </p>
+            </form>
           </div>
         </div>
-      </div>
+      </section>
+
+      <section ref={howRef} className="mx-auto max-w-6xl scroll-mt-4 px-4 py-14 sm:px-6">
+        <p className="text-xs font-bold uppercase tracking-widest text-brand-700">How it works</p>
+        <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-slate-900">One lifecycle, five stages</h2>
+        <ol className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          {LIFECYCLE.map(({ icon: Icon, title, text }, i) => (
+            <li key={title} className="rounded-2xl border border-slate-200 bg-white p-5">
+              <div className="flex items-center gap-2">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-50 text-xs font-bold text-brand-800">{i + 1}</span>
+                <Icon size={18} className="text-brand-700" aria-hidden />
+              </div>
+              <h3 className="mt-3 text-sm font-bold text-slate-900">{title}</h3>
+              <p className="mt-1.5 text-xs leading-relaxed text-slate-600">{text}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <section className="border-y border-slate-200 bg-white">
+        <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+          <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">Built for everyone in the chain</h2>
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {AUDIENCES.map(({ icon: Icon, title, text }) => (
+              <div key={title} className="flex gap-3 rounded-xl p-2">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700"><Icon size={18} aria-hidden /></span>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">{title}</h3>
+                  <p className="mt-0.5 text-xs leading-relaxed text-slate-600">{text}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+        <div className="grid gap-4 md:grid-cols-3">
+          {PRINCIPLES.map(({ icon: Icon, title, text }) => (
+            <div key={title} className="rounded-2xl bg-brand-950 p-6 text-white">
+              <Icon size={20} className="text-gold-400" aria-hidden />
+              <h3 className="mt-3 text-sm font-bold">{title}</h3>
+              <p className="mt-1.5 text-xs leading-relaxed text-brand-100">{text}</p>
+            </div>
+          ))}
+        </div>
+        <div className="mt-10 flex flex-col items-center gap-3 rounded-2xl border border-slate-200 bg-white p-8 text-center">
+          <h2 className="text-xl font-extrabold tracking-tight text-slate-900">Ready to follow a need all the way to impact?</h2>
+          <Button icon={<LogIn size={16} />} onClick={goToSignIn}>Sign in</Button>
+        </div>
+      </section>
+
+      <footer className="border-t border-slate-200 py-6 text-center text-xs text-slate-400">
+        CIVICFLOW · Public Innovation, Procurement &amp; Impact Management
+      </footer>
     </div>
   );
 }

@@ -12,4 +12,6 @@ public interface AppUserRepository extends JpaRepository<AppUser, String> {
     List<AppUser> findByRole(UserRole role);
     List<AppUser> findByRoleAndDepartmentId(UserRole role, String departmentId);
     List<AppUser> findByProviderId(String providerId);
+
+    Optional<AppUser> findByEmailIgnoreCase(String email);
 }

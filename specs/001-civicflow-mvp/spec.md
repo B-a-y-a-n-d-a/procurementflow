@@ -110,4 +110,4 @@ See BRS §25.
 | Does every purchase need a PublicNeed? | Yes (1 : 0..1). Routine buys use a light need + `QUOTATION`. |
 | Where is the award decision stored? | On `PurchaseOrder` (`DRAFT` = selected). |
 | Is the AI allowed to pre-fill evaluation scores? | No. It can only summarise the evidence. |
-| Real login? | No. A demo persona header (`X-Demo-User`). The production path is OIDC (Future). |
+| Real login? | Email + password with signed tokens (T122, replacing the MVP's demo persona header). SSO/OIDC is T100. |

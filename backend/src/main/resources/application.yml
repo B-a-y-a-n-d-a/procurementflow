@@ -27,7 +27,12 @@ spring:
       write-dates-as-timestamps: false
 
 civicflow:
-  seed-on-startup: ${SEED_ON_STARTUP:true}
+  # The database is loaded by importing database/civicflow.sql. Seeding is only used to regenerate that script.
+  seed-on-startup: ${SEED_ON_STARTUP:false}
+  seed-user-password: ${SEED_USER_PASSWORD:}
+  auth:
+    token-secret: ${AUTH_TOKEN_SECRET:}   # >= 32 chars; blank = random per start (sign-ins lost on restart)
+    token-ttl: ${AUTH_TOKEN_TTL:PT12H}
   organisation:
     name: Mzansi Metro (demo)
     province: Gauteng

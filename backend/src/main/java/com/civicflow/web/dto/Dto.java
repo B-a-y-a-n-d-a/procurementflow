@@ -41,6 +41,12 @@ public final class Dto {
                        String departmentName, String providerId, String providerName) {
     }
 
+    public record LoginRequest(@NotBlank @Size(max = 200) String email, @NotBlank @Size(max = 200) String password) {
+    }
+
+    public record LoginResponse(String token, Instant expiresAt, User user) {
+    }
+
     public record Budget(BigDecimal allocated, BigDecimal committed, BigDecimal available, double utilisationPct) {
     }
 

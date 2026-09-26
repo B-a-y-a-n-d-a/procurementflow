@@ -1,11 +1,11 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import { api, getDemoUserId, setDemoUserId } from '../api/client';
-import type { UserDto, UserRole } from '../api/types';
+import { api, getToken, setToken, setUnauthorizedHandler } from '../api/client';
+import type { LoginRequest, LoginResponse, UserDto, UserRole } from '../api/types';
 
 interface AuthState {
   user: UserDto | null;
   loading: boolean;
-  login: (userId: string) => Promise<void>;
+  login: (credentials: LoginRequest) => Promise<void>;
   logout: () => void;
   has: (...roles: UserRole[]) => boolean;
   isStaff: boolean;
@@ -13,30 +13,35 @@ interface AuthState {
 
 const AuthContext = createContext<AuthState | null>(null);
 
-/** DEMO persona auth (X-Demo-User header). Production would use OIDC - see tasks T100. */
+/** Email + password sign-in; the API returns a signed token kept in localStorage (T122). SSO/OIDC is T100. */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserDto | null>(null);
-  const [loading, setLoading] = useState<boolean>(!!getDemoUserId());
+  const [loading, setLoading] = useState<boolean>(!!getToken());
 
-  useEffect(() => {
-    if (!getDemoUserId()) return;
-    api
-      .get<UserDto>('/auth/me')
-      .then(setUser)
-      .catch(() => setDemoUserId(null))
-      .finally(() => setLoading(false));
-  }, []);
-
-  const login = useCallback(async (userId: string) => {
-    setDemoUserId(userId);
-    const me = await api.get<UserDto>('/auth/me');
-    setUser(me);
+  const logout = useCallback(() => {
+    setToken(null);
+    setUser(null);
     window.location.hash = '#/';
   }, []);
 
-  const logout = useCallback(() => {
-    setDemoUserId(null);
-    setUser(null);
+  useEffect(() => {
+    setUnauthorizedHandler(logout);
+    return () => setUnauthorizedHandler(null);
+  }, [logout]);
+
+  useEffect(() => {
+    if (!getToken()) return;
+    api
+      .get<UserDto>('/auth/me')
+      .then(setUser)
+      .catch(() => setToken(null))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const login = useCallback(async (credentials: LoginRequest) => {
+    const res = await api.post<LoginResponse>('/auth/login', credentials);
+    setToken(res.token);
+    setUser(res.user);
     window.location.hash = '#/';
   }, []);
 

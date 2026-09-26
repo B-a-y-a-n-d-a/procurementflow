@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Bell, ChevronsUpDown, Menu, Sparkles, X } from 'lucide-react';
+import { Bell, LogOut, Menu, Sparkles, X } from 'lucide-react';
 import { api } from '../api/client';
 import type { NotificationListDto } from '../api/types';
 import { useAuth, useUser } from './auth';
@@ -153,8 +153,8 @@ function UserMenu() {
           {ROLE_LABEL[user.role]}{user.departmentName ? ` · ${user.departmentName}` : user.providerName ? ` · ${user.providerName}` : ''}
         </div>
       </div>
-      <button onClick={logout} title="Switch persona" className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100">
-        <ChevronsUpDown size={14} /> <span className="hidden sm:inline">Switch</span>
+      <button onClick={logout} title="Sign out" className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100">
+        <LogOut size={14} /> <span className="hidden sm:inline">Sign out</span>
       </button>
     </div>
   );

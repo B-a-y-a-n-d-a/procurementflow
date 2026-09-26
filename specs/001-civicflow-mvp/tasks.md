@@ -64,7 +64,7 @@ Legend: `[x]` done · `[ ]` open (tracked as a GitHub issue) · **[P]** can run 
 - [x] T073 GitHub: close obsolete ProcureFlow issues, file the open tasks below as issues
 
 ## Open (post-MVP backlog → GitHub issues)
-- [ ] T100 Real authentication (OIDC/Keycloak) replacing the demo header (SEC-05) (#34)
+- [ ] T100 SSO/OIDC (e.g. Keycloak) on top of email + password sign-in (SEC-05) (#34)
 - [x] T101 CI pipeline (GitHub Actions: `mvnw verify`, frontend lint/build, docker build). Needs a token with `workflow` scope. (#13)
 - [ ] T102 File uploads for attachments/evidence (MinIO/S3) instead of links (#14)
 - [ ] T103 Email/SMS notifications (FR-120 extension) (#15)
@@ -86,3 +86,8 @@ Legend: `[x]` done · `[ ]` open (tracked as a GitHub issue) · **[P]** can run 
 - [x] T119 Reject impact measurements dated in the future or before the implementation start date; judge demo backdates the PO start date instead of forward-dating measurements (#31)
 - [x] T120 Confirmation dialog before "Mark completed" on an implementation (irreversible) (#32)
 - [ ] T121 Code-split the frontend bundle (697 kB; lazy-load routes and Leaflet) (#33)
+
+## Post-MVP: accounts & data
+- [x] T122 Email + password sign-in (BCrypt, signed bearer tokens) replacing the `X-Demo-User` persona header; persona listing and demo reset endpoints removed
+- [x] T123 Ship the seeded dataset as `database/civicflow.sql` (MySQL Workbench import + Docker init); the app no longer seeds itself
+- [x] T124 Public landing page with sign-in CTA and no demo data

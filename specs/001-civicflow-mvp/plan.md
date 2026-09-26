@@ -9,7 +9,7 @@
 | Backend | Java 21, Spring Boot 3.5, Maven (wrapper `mvnw`) | Requested stack. Mature, and fits a strict service layer for rules and audit. |
 | Persistence | MySQL 8.4, Spring Data JPA (Hibernate), Flyway | Requested DB. Flyway gives us a single reviewed schema (`V1__schema.sql`) that mirrors the ERD. |
 | API | REST/JSON under `/api`, DTOs as Java records, Bean Validation | Simple and demo-friendly. The contract is in [contracts/api.md](contracts/api.md). |
-| Auth (demo) | `X-Demo-User: <userId>` header, resolved by a servlet filter into a request-scoped `CurrentUser` | Persona switching for judges. It's swappable for OIDC/JWT later without touching services. |
+| Auth | Email + password (BCrypt) → HMAC-signed bearer token, resolved by a servlet filter into a request-scoped `CurrentUser` (T122) | Services only see `CurrentUser`, so SSO/OIDC (T100) can replace the token issuer without touching them. |
 | AI | `CivicAiService`: grounded context → Gemini REST (`GEMINI_API_KEY`, `GEMINI_MODEL`), else a deterministic template engine | Key stays server-side (Art. IV). |
 | Frontend | React 19, TypeScript, Vite 6, Tailwind 4, lucide-react, Leaflet (react-leaflet) | Keeps the existing toolchain. Leaflet serves the one-map requirement. |
 | Runtime | Docker Compose: `mysql`, `backend`, `frontend` (nginx serves the SPA and proxies `/api` → backend) | One command. The same origin avoids CORS in Docker. |
@@ -43,7 +43,7 @@
 └── frontend/
     ├── Dockerfile, nginx.conf
     └── src/
-        ├── api/                # client.ts (fetch + X-Demo-User), types.ts (contract DTOs)
+        ├── api/                # client.ts (fetch + bearer token), types.ts (contract DTOs)
         ├── app/                # App shell, router (hash), auth context, layout, nav per role
         ├── components/ui/      # Card, Badge, Button, Stat, Table, Modal, Field, EmptyState, StageTracker, Money
         ├── features/           # dashboard, needs, approvals, opportunities, solutions, providers,
@@ -58,7 +58,7 @@
 3. **The audit correlation id.** `audit_log_entry.need_id` (nullable) correlates every lifecycle event with its root need, so the Journey is one indexed query. This is audit metadata, not business data, so it's allowed by Art. VI.2.
 4. **The hash chain.** `hash = SHA-256(prevHash | sequence | occurredAt | actorId | action | entityType | entityId | summary | metadata)`. Writes are serialised in `AuditService` (synchronized plus the sequence from `MAX+1` inside the transaction, which is fine for the hackathon's single instance).
 5. **Selection on PurchaseOrder.** `DRAFT` = selected, awaiting supplier verification. `ISSUED` triggers the Implementation.
-6. **Seed.** `DemoDataSeeder` runs at startup if `department` is empty (and on `POST /api/admin/reset-demo`). All timestamps are relative to `now`. It writes realistic audit entries for the seeded history, so journeys aren't empty.
+6. **Seed.** Data is loaded by importing `database/civicflow.sql` (T122); the app never seeds itself. `DemoDataSeeder` generates that script (`SEED_ON_STARTUP=true` against an empty DB, then `mysqldump`). Timestamps are relative to the generation date. It writes realistic audit entries for the seeded history, so journeys aren't empty.
 7. **JSON columns.** Capability lists, provider types, technologies, scoring tables and default criteria are stored as MySQL `JSON` via a JPA `AttributeConverter` (Jackson).
 8. **Errors.** `{ status, code, message, details }`, with 400 validation, 403 permission, 404 not found, 409 invalid state and 422 business rule. The rule codes are listed in the contract.
 9. **Frontend routing.** Hash-based routes (`#/needs/:id`) give deep links without a server config, and they work under nginx and Vite alike.

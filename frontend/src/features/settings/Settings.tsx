@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Database, History, Info, Lock, Plus, RotateCcw, Save, Scale, Trash2 } from 'lucide-react';
+import { History, Info, Lock, Plus, RotateCcw, Save, Scale, Trash2 } from 'lucide-react';
 import { api } from '../../api/client';
 import type { ApprovalBandDto, CriterionDto, CriterionKey, RuleSetDto, ScoringMethod, UserRole } from '../../api/types';
 import { useAuth } from '../../app/auth';
-import { toast } from '../../app/toast';
 import {
-  Badge, Button, Callout, Card, Checkbox, ErrorBanner, Field, Grid, Input, KeyValues, Loading, Modal, PageHeader, Select,
+  Badge, Button, Callout, Card, Checkbox, ErrorBanner, Field, Grid, Input, KeyValues, Loading, PageHeader, Select,
 } from '../../components/ui';
 import { dateTime, money } from '../../lib/format';
 import { useAction, useApi } from '../../lib/hooks';
@@ -47,14 +46,12 @@ export default function Settings() {
   const isAdmin = has('ADMIN');
   const { data, error, loading, reload, setData } = useApi(() => api.get<RuleSetDto>('/rules'));
   const [draft, setDraft] = useState<RuleSetDto | null>(null);
-  const [resetOpen, setResetOpen] = useState(false);
 
   useEffect(() => {
     if (data) setDraft(structuredClone(data));
   }, [data]);
 
   const save = useAction((body: RuleSetDto) => api.put<RuleSetDto>('/rules', body), (r) => `Business rules saved as version ${r.version ?? ''}`.trim());
-  const reset = useAction(() => api.post<{ ok: boolean }>('/admin/reset-demo'));
 
   if (loading && !data) return <Loading label="Loading business rules…" />;
   if (error && !data) return <ErrorBanner error={error} onRetry={reload} />;
@@ -76,14 +73,6 @@ export default function Settings() {
     if (!weightOk || ro) return;
     const r = await save.run(draft);
     if (r) setData(r);
-  };
-
-  const onReset = async () => {
-    const r = await reset.run();
-    if (r) {
-      toast.success('Demo data reset. Reloading…');
-      setTimeout(() => window.location.reload(), 800);
-    }
   };
 
   const th = 'px-2 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-400';
@@ -268,22 +257,6 @@ export default function Settings() {
             <Button type="button" variant="secondary" disabled={!dirty || save.loading} onClick={() => setDraft(structuredClone(data))}>Discard changes</Button>
             <Button type="submit" icon={<Save size={16} />} loading={save.loading} disabled={!dirty || !weightOk}>Save new version</Button>
           </div>
-
-          <Card title="Demo data" subtitle="For demonstrations and judging" icon={<Database size={16} />}>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm text-slate-600">Restore the fictional Mzansi Metro dataset: all needs, opportunities, submissions, POs, impact, audit and rules return to the seeded state.</p>
-              <Button type="button" variant="danger" icon={<RotateCcw size={16} />} onClick={() => setResetOpen(true)}>Reset demo data</Button>
-            </div>
-          </Card>
-
-          <Modal open={resetOpen} onClose={() => setResetOpen(false)} title="Reset demo data?"
-            subtitle="This replaces every record with the seeded demo dataset."
-            footer={<>
-              <Button type="button" variant="secondary" onClick={() => setResetOpen(false)} disabled={reset.loading}>Cancel</Button>
-              <Button type="button" variant="danger" loading={reset.loading} onClick={onReset}>Reset now</Button>
-            </>}>
-            <p className="text-sm text-slate-600">All changes made during this session (new needs, approvals, evaluations, POs, measurements and rule versions) will be lost. The page reloads afterwards.</p>
-          </Modal>
         </>
       )}
     </form>
