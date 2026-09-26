@@ -60,6 +60,8 @@ export interface UserDto {
   departmentName?: string | null;
   providerId?: string | null;
   providerName?: string | null;
+  active: boolean;
+  createdAt?: string | null;
 }
 
 export interface LoginRequest { email: string; password: string }

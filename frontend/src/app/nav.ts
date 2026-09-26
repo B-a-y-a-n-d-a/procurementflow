@@ -29,6 +29,7 @@ export const NAV: NavItem[] = [
   { path: '/map', label: 'Map', icon: Map, group: 'Delivery & impact', roles: 'ALL' },
   { path: '/ai', label: 'CIVIC AI', icon: Sparkles, group: 'Oversight', roles: 'STAFF' },
   { path: '/audit', label: 'Audit Log', icon: ScrollText, group: 'Oversight', roles: 'STAFF' },
+  { path: '/admin/users', label: 'Users', icon: Users, group: 'Oversight', roles: ['ADMIN'] },
   { path: '/settings', label: 'Business Rules', icon: Settings, group: 'Oversight', roles: 'STAFF' },
 ];
 
