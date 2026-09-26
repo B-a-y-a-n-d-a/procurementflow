@@ -65,7 +65,7 @@ Legend: `[x]` done · `[ ]` open (tracked as a GitHub issue) · **[P]** can run 
 
 ## Open (post-MVP backlog → GitHub issues)
 - [ ] T100 Real authentication (OIDC/Keycloak) replacing the demo header (SEC-05) (#34)
-- [ ] T101 CI pipeline (GitHub Actions: `mvnw verify`, frontend lint/build, docker build). Needs a token with `workflow` scope. (#13)
+- [x] T101 CI pipeline (GitHub Actions: `mvnw verify`, frontend lint/build, docker build). Needs a token with `workflow` scope. (#13)
 - [ ] T102 File uploads for attachments/evidence (MinIO/S3) instead of links (#14)
 - [ ] T103 Email/SMS notifications (FR-120 extension) (#15)
 - [ ] T104 Multiple evaluators per submission UI + conflict-of-interest declarations (FR-063, BR-09) (#16)
