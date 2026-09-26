@@ -83,6 +83,6 @@ Legend: `[x]` done · `[ ]` open (tracked as a GitHub issue) · **[P]** can run 
 - [ ] T116 Choose and add an open-source licence (Open Source Agenda) (#28)
 - [ ] T117 Judge demo rehearsal checklist & backup video (#29)
 - [ ] T118 Rename the repository to `civicflow` (#30)
-- [ ] T119 Reject impact measurements dated in the future (or after implementation completion); adjust the judge demo seed so the hero implementation starts ~3 months in the past (#31)
+- [x] T119 Reject impact measurements dated in the future or before the implementation start date; judge demo backdates the PO start date instead of forward-dating measurements (#31)
 - [x] T120 Confirmation dialog before "Mark completed" on an implementation (irreversible) (#32)
 - [ ] T121 Code-split the frontend bundle (697 kB; lazy-load routes and Leaflet) (#33)

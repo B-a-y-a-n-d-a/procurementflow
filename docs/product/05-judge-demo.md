@@ -31,11 +31,11 @@ Show the **Executive dashboard**: investment, active opportunities, projects at 
 
 ### 4:30 Provider becomes supplier → PO (40 s)
 1. CleanSight appears under **Suppliers → Pending verification**. Enter the CSD number and tick *Tax compliant* → **ACTIVE**.
-2. **Issue the PO**: PO-2026-0004 for R420 000. Show the Environmental Services budget: committed now counts the R420 000 PO value instead of the R500 000 request estimate, so R80 000 is released back to *available*.
+2. **Issue the PO**: PO-2026-0004 for R420 000. Pick **Sipho** as implementation manager and set the **start date three months back** (e.g. today minus 90 days), so the impact results in the next step are dated after delivery began. Show the Environmental Services budget: committed now counts the R420 000 PO value instead of the R500 000 request estimate, so R80 000 is released back to *available*.
 
 ### 5:10 Implementation → impact (80 s)
 1. Log in as **Sipho** → *Implementations → Illegal Dumping*. Add a milestone, post an **Evidence** update (a photo link) and set progress to 100%.
-2. On the **Impact** tab, click the suggested templates (*Illegal dumping hotspots, Wards covered, Jobs supported, Local SMEs supported*). Enter baseline **147**, target **100**, then record a measurement of **96** (date it three months after the start, with an evidence link; the MVP accepts forward-dated measurements for the demo). The status becomes **ACHIEVED** and the change **−34.7%**. Record wards 12, jobs 8, SMEs 1.
+2. On the **Impact** tab, click the suggested templates (*Illegal dumping hotspots, Wards covered, Jobs supported, Local SMEs supported*). Enter baseline **147**, target **100**, then record a measurement of **96** (dated today, the default, with an evidence link; CIVICFLOW rejects measurements dated in the future or before the implementation's start date). The status becomes **ACHIEVED** and the change **−34.7%**. Record wards 12, jobs 8, SMEs 1.
 3. Complete the implementation (allowed because evidence exists, per BR-14).
 
 ### 6:30 Executive outcome + audit (30 s)

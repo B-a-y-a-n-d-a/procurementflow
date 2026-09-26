@@ -33,7 +33,7 @@ export function ImpactSection({ impl, canManage, onChange }: {
           {impl.metrics.map((m) => <MetricCard key={m.id} m={m} canManage={canManage} onMeasure={() => setMeasuring(m)} />)}
         </div>
       )}
-      {measuring && <MeasurementModal metric={measuring} onClose={() => setMeasuring(null)} onSaved={(d) => { onChange(d); setMeasuring(null); }} />}
+      {measuring && <MeasurementModal metric={measuring} startDate={impl.startDate} onClose={() => setMeasuring(null)} onSaved={(d) => { onChange(d); setMeasuring(null); }} />}
       {adding && <AddMetricModal impl={impl} onClose={() => setAdding(false)} onSaved={(d) => { onChange(d); setAdding(false); }} />}
     </div>
   );
@@ -114,9 +114,12 @@ function nowLocal(): string {
   return local.toISOString().slice(0, 16);
 }
 
-function MeasurementModal({ metric, onClose, onSaved }: { metric: ImpactMetricDto; onClose: () => void; onSaved: (d: ImplementationDetailDto) => void }) {
+function MeasurementModal({ metric, startDate, onClose, onSaved }: {
+  metric: ImpactMetricDto; startDate?: string | null; onClose: () => void; onSaved: (d: ImplementationDetailDto) => void;
+}) {
   const [value, setValue] = useState('');
-  const [measuredAt, setMeasuredAt] = useState(nowLocal());
+  const [maxAt] = useState(nowLocal);
+  const [measuredAt, setMeasuredAt] = useState(maxAt);
   const [evidenceUrl, setEvidenceUrl] = useState('');
   const [note, setNote] = useState('');
   const [ward, setWard] = useState('');
@@ -125,7 +128,13 @@ function MeasurementModal({ metric, onClose, onSaved }: { metric: ImpactMetricDt
     'Measurement recorded — impact recalculated',
   );
   const v = Number(value);
-  const invalid = value === '' || Number.isNaN(v) || !measuredAt;
+  // Mirrors the server rule (T119): not in the future, not before delivery started. Same-format strings compare correctly.
+  const minAt = startDate ? `${startDate}T00:00` : undefined;
+  const dateError = !measuredAt ? null
+    : measuredAt > nowLocal() ? "Can't be in the future"
+    : minAt && measuredAt < minAt ? `Can't be before the implementation started (${date(startDate)})`
+    : null;
+  const invalid = value === '' || Number.isNaN(v) || !measuredAt || !!dateError;
   const submit = async () => {
     const r = await save.run({
       value: v, measuredAt: new Date(measuredAt).toISOString(),
@@ -142,8 +151,8 @@ function MeasurementModal({ metric, onClose, onSaved }: { metric: ImpactMetricDt
           <Field label={`Value (${metric.unit})`} required>
             <Input type="number" step="any" inputMode="decimal" value={value} onChange={(e) => setValue(e.target.value)} />
           </Field>
-          <Field label="Measured at" required>
-            <Input type="datetime-local" value={measuredAt} onChange={(e) => setMeasuredAt(e.target.value)} />
+          <Field label="Measured at" required error={dateError}>
+            <Input type="datetime-local" value={measuredAt} min={minAt} max={maxAt} onChange={(e) => setMeasuredAt(e.target.value)} />
           </Field>
         </div>
         <Field label="Evidence URL" hint="Link to a report, photo set or dataset (fictional demo links use example.org).">
