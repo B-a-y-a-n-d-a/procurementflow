@@ -20,6 +20,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -99,7 +100,7 @@ class LifecycleIntegrationTest {
         assertThat(po.status()).isEqualTo(POStatus.DRAFT);
         assertThat(po.supplierStatus()).isEqualTo(SupplierStatus.PENDING_VERIFICATION);
         assertThat(po.isDeviation()).isFalse();
-        var issueReq = new Dto.IssuePoRequest("u-sipho", LocalDate.now(), LocalDate.now().plusDays(90));
+        var issueReq = new Dto.IssuePoRequest("u-sipho", LocalDate.now().minusDays(90), LocalDate.now());
         assertThatThrownBy(() -> as("u-johan", () -> procurement.issue(po.id(), issueReq)))
                 .isInstanceOf(ApiException.class).hasFieldOrPropertyWithValue("code", "SUPPLIER_NOT_ACTIVE");
         as("u-johan", () -> procurement.verify(po.supplierId(), new Dto.VerifySupplierRequest("MAAA0123456", true)));
@@ -112,11 +113,19 @@ class LifecycleIntegrationTest {
                 .isInstanceOf(ApiException.class).hasFieldOrPropertyWithValue("code", "EVIDENCE_REQUIRED");
         as("u-sipho", () -> implementations.addUpdate(impl, new Dto.CreateUpdateRequest(UpdateType.EVIDENCE,
                 "Hotspot map handed over", 100, "https://example.org/evidence.pdf")));
+        assertThat(as("u-sipho", () -> implementations.get(impl)).status()).isEqualTo(ImplementationStatus.IN_PROGRESS);
 
         // Impact: 147 -> 96 hotspots = -34.69% ACHIEVED (US-11)
         var detail = as("u-sipho", () -> impact.addMetric(impl, new Dto.CreateMetricRequest("Illegal dumping hotspots",
                 "Tracked hotspots", "hotspots", Direction.DECREASE, BigDecimal.valueOf(147), BigDecimal.valueOf(100))));
         String metricId = detail.metrics().get(0).id();
+        // Measurements are evidence: not in the future, not before delivery started (T119)
+        assertThatThrownBy(() -> as("u-sipho", () -> impact.addMeasurement(metricId, new Dto.CreateMeasurementRequest(
+                BigDecimal.valueOf(96), Instant.now().plus(Duration.ofDays(1)), null, null, null))))
+                .isInstanceOf(ApiException.class).hasFieldOrPropertyWithValue("code", "MEASUREMENT_IN_FUTURE");
+        assertThatThrownBy(() -> as("u-sipho", () -> impact.addMeasurement(metricId, new Dto.CreateMeasurementRequest(
+                BigDecimal.valueOf(96), Instant.now().minus(Duration.ofDays(120)), null, null, null))))
+                .isInstanceOf(ApiException.class).hasFieldOrPropertyWithValue("code", "MEASUREMENT_BEFORE_START");
         var measured = as("u-sipho", () -> impact.addMeasurement(metricId, new Dto.CreateMeasurementRequest(
                 BigDecimal.valueOf(96), Instant.now(), "https://example.org/survey.pdf", "Quarter survey", null)));
         var metric = measured.metrics().get(0);

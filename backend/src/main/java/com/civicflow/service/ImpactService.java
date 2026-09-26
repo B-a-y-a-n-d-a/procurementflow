@@ -16,6 +16,8 @@ import com.civicflow.web.dto.Dto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +25,8 @@ import java.util.Map;
 /** US-11: impact metrics (baseline/target) and dated, evidenced measurements (BR-15). */
 @Service
 public class ImpactService {
+
+    private static final Duration MEASUREMENT_CLOCK_SKEW = Duration.ofMinutes(5);
 
     private static final List<Dto.MetricTemplate> COMMON = List.of(
             new Dto.MetricTemplate("Jobs supported", "Local jobs created or sustained by the implementation", "jobs", Direction.INCREASE),
@@ -115,6 +119,17 @@ public class ImpactService {
         ImpactMetric m = metrics.findById(metricId).orElseThrow(() -> ApiException.notFound("Impact metric", metricId));
         Implementation impl = lookup.implementation(m.getImplementationId());
         AppUser user = implementations.requireManager(impl);
+        // Measured results are evidence: they can't be dated in the future or before delivery started (T119).
+        // A few minutes' tolerance covers clock skew between the browser and the server.
+        if (in.measuredAt().isAfter(Clock.now().plus(MEASUREMENT_CLOCK_SKEW))) {
+            throw ApiException.rule("MEASUREMENT_IN_FUTURE", "A measurement can't be dated in the future");
+        }
+        LocalDate measuredOn = in.measuredAt().atZone(Clock.SAST).toLocalDate();
+        if (impl.getStartDate() != null && measuredOn.isBefore(impl.getStartDate())) {
+            throw ApiException.rule("MEASUREMENT_BEFORE_START",
+                    "A measurement can't be dated before the implementation started (" + impl.getStartDate() + ")",
+                    Map.of("startDate", impl.getStartDate().toString()));
+        }
         ImpactMeasurement ms = new ImpactMeasurement();
         ms.setMetricId(metricId);
         ms.setMeasuredValue(in.value());
