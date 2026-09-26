@@ -2,7 +2,7 @@
 
 - **Base URL:** `/api` (Docker: via nginx on `:3000`; dev: Spring Boot on `:8080`, proxied by Vite)
 - **Format:** JSON, camelCase, ISO-8601 timestamps (UTC, `Instant`), dates `YYYY-MM-DD`, money as numbers (ZAR).
-- **Auth (demo):** header `X-Demo-User: <userId>`. Missing or unknown user → `401`. Public routes: `GET /api/auth/personas`, `GET /api/health`.
+- **Auth (T122):** `POST /api/auth/login` with email + password returns a signed token; send it as `Authorization: Bearer <token>`. Missing, invalid or expired token → `401 UNAUTHENTICATED`. Public routes: `POST /api/auth/login`, `GET /api/health`.
 - **DTO shapes:** the canonical TypeScript definitions are in [`frontend/src/api/types.ts`](../../../frontend/src/api/types.ts). The Java records in `backend/.../web/dto` mirror them exactly. **Change this file and `types.ts` first**, then the code.
 
 ## Errors
@@ -27,7 +27,7 @@ Roles: **ALL** = any authenticated user · **STAFF** = every role except PROVIDE
 ### Auth & reference
 | Method | Path | Role | Returns |
 | --- | --- | --- | --- |
-| GET | `/auth/personas` | public | `UserDto[]` |
+| POST | `/auth/login` | public | `LoginRequest { email, password }` → `LoginResponse { token, expiresAt, user: UserDto }`; wrong email/password → `401 INVALID_CREDENTIALS` (same error for both) |
 | GET | `/auth/me` | ALL | `UserDto` |
 | GET | `/users` | STAFF | `UserDto[]` |
 | GET | `/departments` | STAFF | `DepartmentDto[]` (with `budget`) |
@@ -113,5 +113,4 @@ Roles: **ALL** = any authenticated user · **STAFF** = every role except PROVIDE
 | GET | `/rules` | ALL | `RuleSetDto` |
 | PUT | `/rules` | ADM | `RuleSetDto` → `RuleSetDto` (new version) |
 | POST | `/ai/{task}` | STAFF (provider: none) | `AiRequest` → `AiResultDto`; task ∈ `executive-briefing`, `need-analysis`, `opportunity-draft`, `solution-discovery`, `submission-summary`, `impact-summary` |
-| POST | `/admin/reset-demo` | ADM | `{ ok: true }` |
 | GET | `/health` | public | `{ status: "UP" }` |

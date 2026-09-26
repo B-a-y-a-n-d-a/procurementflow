@@ -28,4 +28,6 @@ public class AppUser extends BaseEntity {
     @Column(name = "is_active")
     private boolean active = true;
     private Instant createdAt;
+    /** BCrypt hash; never serialised (DTOs map users explicitly). NULL = can't sign in. */
+    private String passwordHash;
 }

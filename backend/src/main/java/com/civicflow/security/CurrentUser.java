@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import java.util.Arrays;
 
 /**
- * The authenticated (demo) user for the current request, set by {@link DemoAuthFilter}.
+ * The signed-in user for the current request, set by {@link AuthFilter}.
  * Services use {@link #require(UserRole...)} so authorisation is enforced server-side (SEC-01).
  */
 @Component
@@ -43,7 +43,7 @@ public class CurrentUser {
     public AppUser get() {
         AppUser user = HOLDER.get();
         if (user == null) {
-            throw new ApiException(HttpStatus.UNAUTHORIZED, "UNAUTHENTICATED", "Select a demo persona to continue");
+            throw new ApiException(HttpStatus.UNAUTHORIZED, "UNAUTHENTICATED", "Sign in to continue");
         }
         return user;
     }

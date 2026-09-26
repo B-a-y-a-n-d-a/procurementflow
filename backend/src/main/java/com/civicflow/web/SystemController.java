@@ -10,8 +10,8 @@ import com.civicflow.repository.AuditLogEntryRepository;
 import com.civicflow.repository.DepartmentRepository;
 import com.civicflow.repository.NotificationRepository;
 import com.civicflow.security.CurrentUser;
-import com.civicflow.seed.DemoDataSeeder;
 import com.civicflow.service.AuditService;
+import com.civicflow.service.AuthService;
 import com.civicflow.service.DtoMapper;
 import com.civicflow.service.RuleService;
 import com.civicflow.web.dto.Dto;
@@ -33,14 +33,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-/** Auth (demo), reference data, notifications, audit, rules, CIVIC AI, admin, health. */
+/** Auth, reference data, notifications, audit, rules, CIVIC AI, admin, health. */
 @RestController
 @RequestMapping("/api")
 public class SystemController {
-
-    private static final List<UserRole> PERSONA_ORDER = List.of(UserRole.DEPARTMENT_OFFICER,
-            UserRole.DEPARTMENT_MANAGER, UserRole.FINANCE_DIRECTOR, UserRole.PROCUREMENT_OFFICER, UserRole.PROVIDER,
-            UserRole.EXECUTIVE, UserRole.AUDITOR, UserRole.ADMIN, UserRole.EVALUATOR);
 
     private final AppUserRepository users;
     private final DepartmentRepository departments;
@@ -49,13 +45,13 @@ public class SystemController {
     private final AuditService audit;
     private final RuleService rules;
     private final CivicAiService ai;
-    private final DemoDataSeeder seeder;
+    private final AuthService auth;
     private final CurrentUser currentUser;
     private final DtoMapper mapper;
 
     public SystemController(AppUserRepository users, DepartmentRepository departments,
                             NotificationRepository notifications, AuditLogEntryRepository auditEntries,
-                            AuditService audit, RuleService rules, CivicAiService ai, DemoDataSeeder seeder,
+                            AuditService audit, RuleService rules, CivicAiService ai, AuthService auth,
                             CurrentUser currentUser, DtoMapper mapper) {
         this.users = users;
         this.departments = departments;
@@ -64,7 +60,7 @@ public class SystemController {
         this.audit = audit;
         this.rules = rules;
         this.ai = ai;
-        this.seeder = seeder;
+        this.auth = auth;
         this.currentUser = currentUser;
         this.mapper = mapper;
     }
@@ -74,14 +70,10 @@ public class SystemController {
         return Map.of("status", "UP");
     }
 
-    // ---------- auth (demo) ----------
-    @GetMapping("/auth/personas")
-    @Transactional(readOnly = true)
-    public List<Dto.User> personas() {
-        return users.findAll().stream().filter(AppUser::isActive)
-                .sorted(Comparator.comparing((AppUser u) -> PERSONA_ORDER.indexOf(u.getRole()))
-                        .thenComparing(AppUser::getFullName))
-                .map(mapper::user).toList();
+    // ---------- auth ----------
+    @PostMapping("/auth/login")
+    public Dto.LoginResponse login(@Valid @RequestBody Dto.LoginRequest body) {
+        return auth.login(body);
     }
 
     @GetMapping("/auth/me")
@@ -184,13 +176,5 @@ public class SystemController {
     @PostMapping("/ai/{task}")
     public Dto.AiResult ai(@PathVariable String task, @RequestBody(required = false) Dto.AiRequest body) {
         return ai.run(task, body == null ? new Dto.AiRequest(null, null, null, null) : body);
-    }
-
-    // ---------- admin ----------
-    @PostMapping("/admin/reset-demo")
-    public Map<String, Object> reset() {
-        currentUser.require(UserRole.ADMIN);
-        seeder.reset();
-        return Map.of("ok", true);
     }
 }

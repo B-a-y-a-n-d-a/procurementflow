@@ -1,0 +1,6 @@
+# Used only to regenerate database/civicflow.sql (see database/README.md).
+services:
+  backend:
+    environment:
+      SEED_ON_STARTUP: "true"
+      SEED_USER_PASSWORD: ${SEED_USER_PASSWORD}

@@ -13,6 +13,7 @@ import com.civicflow.repository.*;
 import com.civicflow.rules.RuleSnapshot;
 import com.civicflow.security.CurrentUser;
 import com.civicflow.service.AuditService;
+import com.civicflow.service.AuthService;
 import com.civicflow.service.Clock;
 import com.civicflow.service.EvaluationService;
 import com.civicflow.service.ImpactService;
@@ -49,6 +50,10 @@ import java.util.Map;
  * Seeds the fictional "Mzansi Metro" demo (constitution Art. VII). History is replayed THROUGH the real services
  * with a time override, so every rule, audit entry and notification is authentic - just dated in the past.
  * Afterwards the audit log is re-chained in chronological order.
+ *
+ * <p>The app no longer seeds itself (T122): the database is loaded by importing {@code database/civicflow.sql}.
+ * This class is kept to regenerate that script ({@code SEED_ON_STARTUP=true} + {@code SEED_USER_PASSWORD}
+ * against an empty database, then {@code mysqldump}; see {@code database/README.md}) and for the integration tests.
  */
 @Component
 public class DemoDataSeeder implements ApplicationRunner {
@@ -64,6 +69,7 @@ public class DemoDataSeeder implements ApplicationRunner {
     }
 
     private final boolean seedOnStartup;
+    private final String userPasswordHash;
     private final EntityManager em;
     private final DepartmentRepository departments;
     private final AppUserRepository users;
@@ -89,7 +95,8 @@ public class DemoDataSeeder implements ApplicationRunner {
 
     private LocalDate today;
 
-    public DemoDataSeeder(@Value("${civicflow.seed-on-startup:true}") boolean seedOnStartup,
+    public DemoDataSeeder(@Value("${civicflow.seed-on-startup:false}") boolean seedOnStartup,
+                          @Value("${civicflow.seed-user-password:}") String userPassword,
                           PlatformTransactionManager transactionManager, EntityManager em,
                           DepartmentRepository departments, AppUserRepository users, ProviderRepository providers,
                           InnovationSolutionRepository solutions, SupplierRepository suppliers,
@@ -100,6 +107,8 @@ public class DemoDataSeeder implements ApplicationRunner {
                           EvaluationService evaluations, ProcurementService procurement,
                           ImplementationService implementations, ImpactService impact, AuditService audit) {
         this.seedOnStartup = seedOnStartup;
+        // One shared sign-in password for every seeded account; blank = accounts can't sign in until one is set.
+        this.userPasswordHash = userPassword == null || userPassword.isBlank() ? null : AuthService.PASSWORDS.encode(userPassword);
         this.em = em;
         this.departments = departments;
         this.users = users;
@@ -133,29 +142,9 @@ public class DemoDataSeeder implements ApplicationRunner {
         }
     }
 
-    /** Admin reset: wipe everything (including the demo audit log) and re-seed. Recorded as DEMO_RESET. */
-    @Transactional
-    public synchronized void reset() {
-        wipe();
-        seedInternal();
-        audit.record(null, "DEMO_RESET", "System", "demo", null, "Demo data reset to the seeded Mzansi Metro scenario", null);
-    }
-
     @Transactional
     public synchronized void seed() {
         seedInternal();
-    }
-
-    private void wipe() {
-        for (String table : List.of("audit_log_entry", "notification", "attachment", "impact_measurement",
-                "impact_metric", "implementation_update", "milestone", "implementation", "purchase_order",
-                "evaluation_score", "evaluation", "supplier_quote", "opportunity_submission", "evaluation_criterion",
-                "innovation_opportunity", "approval_step", "purchase_request", "public_need", "innovation_solution",
-                "supplier", "approval_rule", "business_rule_set", "app_user", "provider", "department")) {
-            em.createNativeQuery("DELETE FROM " + table).executeUpdate();
-        }
-        em.flush();
-        em.clear();
     }
 
     // =====================================================================================================
@@ -407,6 +396,7 @@ public class DemoDataSeeder implements ApplicationRunner {
         u.setProviderId(providerId);
         u.setActive(true);
         u.setCreatedAt(at(380, 9));
+        u.setPasswordHash(userPasswordHash);
         users.save(u);
     }
 

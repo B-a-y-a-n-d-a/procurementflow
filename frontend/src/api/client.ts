@@ -2,7 +2,7 @@ import type { ApiError } from './types';
 
 /** Base URL: same-origin /api (nginx in Docker, Vite proxy in dev). Override with VITE_API_URL. */
 const BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? '/api';
-const USER_KEY = 'civicflow.demoUser';
+const TOKEN_KEY = 'civicflow.token';
 
 export class ApiRequestError extends Error implements ApiError {
   status: number;
@@ -17,31 +17,39 @@ export class ApiRequestError extends Error implements ApiError {
   }
 }
 
-export function getDemoUserId(): string | null {
+/** Signed session token from POST /auth/login, sent as `Authorization: Bearer`. */
+export function getToken(): string | null {
   try {
-    return localStorage.getItem(USER_KEY);
+    return localStorage.getItem(TOKEN_KEY);
   } catch {
-    return null;
+    return memoryToken;
   }
 }
 
-export function setDemoUserId(id: string | null) {
+export function setToken(token: string | null) {
   try {
-    if (id) localStorage.setItem(USER_KEY, id);
-    else localStorage.removeItem(USER_KEY);
+    if (token) localStorage.setItem(TOKEN_KEY, token);
+    else localStorage.removeItem(TOKEN_KEY);
   } catch {
-    /* storage unavailable - persona lasts for this tab only */
+    /* storage unavailable - the session lasts for this tab only */
   }
-  memoryUser = id;
+  memoryToken = token;
 }
 
-let memoryUser: string | null = getDemoUserId();
+let memoryToken: string | null = null;
+memoryToken = getToken();
+
+/** Called when a signed-in request comes back 401 (expired or revoked session). */
+let onUnauthorized: (() => void) | null = null;
+export function setUnauthorizedHandler(handler: (() => void) | null) {
+  onUnauthorized = handler;
+}
 
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
   const headers: Record<string, string> = { Accept: 'application/json' };
   if (body !== undefined) headers['Content-Type'] = 'application/json';
-  const user = memoryUser ?? getDemoUserId();
-  if (user) headers['X-Demo-User'] = user;
+  const token = memoryToken ?? getToken();
+  if (token) headers.Authorization = `Bearer ${token}`;
 
   let res: Response;
   try {
@@ -52,6 +60,7 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
   const text = await res.text();
   const data = text ? safeJson(text) : null;
   if (!res.ok) {
+    if (res.status === 401 && token) onUnauthorized?.();
     const err = (data ?? {}) as Partial<ApiError>;
     throw new ApiRequestError({
       status: res.status,

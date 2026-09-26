@@ -340,7 +340,7 @@ In-app notifications (email/SMS are Future) for: an approval step assigned; a re
 | NFR-04 | Currency ZAR (`R 1 234 567`), dates in SAST, en-ZA formatting. |
 | NFR-05 | All business rules have JUnit tests. `./mvnw verify` (backend) and `npm run lint && npm run build` (frontend) must pass. |
 | NFR-06 | Stack: Spring Boot (Java 21, Maven) REST API + MySQL 8 (Flyway migrations) + React SPA served by nginx. The whole stack starts with `docker compose up --build`. |
-| NFR-07 | Demo resilience: data is seeded automatically on first start, and `POST /api/admin/reset-demo` restores it in seconds. |
+| NFR-07 | Demo resilience: the demo dataset ships as `database/civicflow.sql`; importing it (MySQL Workbench, or automatically into a new Docker volume) restores a known state. |
 
 ## 22. Security
 

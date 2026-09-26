@@ -62,6 +62,9 @@ export interface UserDto {
   providerName?: string | null;
 }
 
+export interface LoginRequest { email: string; password: string }
+export interface LoginResponse { token: string; expiresAt: string; user: UserDto }
+
 export interface BudgetDto { allocated: number; committed: number; available: number; utilisationPct: number }
 export interface DepartmentDto {
   id: string; code: string; name: string; municipality: string; province: string; financialYear: string;

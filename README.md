@@ -15,14 +15,14 @@ Built for the **Geekulcha hackathon, *Gov Innovation Platform* challenge**. It e
 | --- | --- |
 | **Stack** | Java 21 · Spring Boot 3.5 · Maven · MySQL 8.4 · Flyway · React 19 · TypeScript · Vite · Tailwind 4 · Leaflet · Docker Compose |
 | **Method** | Spec-Driven Development: [constitution](specs/constitution.md) → [product docs](docs/product/) → [spec](specs/001-civicflow-mvp/spec.md) → [plan](specs/001-civicflow-mvp/plan.md) → [API contract](specs/001-civicflow-mvp/contracts/api.md) → [tasks](specs/001-civicflow-mvp/tasks.md) → code |
-| **Demo** | Fictional municipality "Mzansi Metro". Persona login (no passwords). A 7-minute [judge demo script](docs/product/05-judge-demo.md) |
+| **Demo** | Fictional municipality "Mzansi Metro", loaded from [`database/civicflow.sql`](database/README.md). Email + password sign-in. A 7-minute [judge demo script](docs/product/05-judge-demo.md) |
 | **Status** | MVP complete (T001–T073 in [tasks](specs/001-civicflow-mvp/tasks.md)). Backend tests, frontend lint/build and the full judge demo verified on the Docker stack. Post-MVP work is tracked in [issues](../../issues) |
 
 ---
 
 ## Contents
 1. [Quick start (Docker, one command)](#1-quick-start-docker-one-command)
-2. [Demo personas](#2-demo-personas)
+2. [Accounts & data](#2-accounts--data)
 3. [Local development loop](#3-local-development-loop)
 4. [Architecture](#4-architecture)
 5. [Repository layout](#5-repository-layout)
@@ -54,36 +54,44 @@ The first build downloads the Maven and npm dependencies and takes a few minutes
 | API | http://localhost:8081/api/health | Spring Boot. Container port 8080 is published on **8081** |
 | MySQL | `localhost:3306`, db/user/password `civicflow` | Data persists in the `mysql-data` volume |
 
-On first start the backend runs the Flyway migrations and **seeds the demo** automatically (~15 s).
+On first start MySQL imports [`database/civicflow.sql`](database/README.md) into the new volume (schema + data), then the
+backend starts. Open http://localhost:3000 and **Sign in** with one of the [accounts](#2-accounts--data). The app itself
+never seeds or resets data.
 
 Useful commands:
 ```bash
 docker compose logs -f backend      # follow API logs
 docker compose down                 # stop (keeps data)
-docker compose down -v              # stop AND wipe the database (re-seeds on next start)
+docker compose down -v              # stop AND wipe the database (re-imports civicflow.sql on next start)
 ```
-Reset the demo without restarting: sign in as **Lindiwe (Admin)** → *Business Rules* → **Reset demo data**.
+**Using your own MySQL / MySQL Workbench instead:** import `database/civicflow.sql` as described in
+[database/README.md](database/README.md), then run only the backend and frontend against it.
 
-**Optional configuration:** copy `.env.example` to `.env` to change ports, DB passwords, or to set `GEMINI_API_KEY` (see [CIVIC AI](#8-civic-ai)).
+**Configuration:** copy `.env.example` to `.env`. Set `AUTH_TOKEN_SECRET` (32+ random characters) so sign-ins survive backend restarts; optionally change ports, DB passwords, or set `GEMINI_API_KEY` (see [CIVIC AI](#8-civic-ai)).
 
 ---
 
-## 2. Demo personas
+## 2. Accounts & data
 
-The login screen is a **labelled demo persona picker**. Every request sends `X-Demo-User: <id>`. These are the judge-demo cast, in lifecycle order:
+The landing page has an **email + password sign-in**. Passwords are stored as BCrypt hashes; a successful sign-in
+returns a signed token (12 h) that the app sends as `Authorization: Bearer …`. Every account in `civicflow.sql` uses
+the shared password **`Civic-7mtM3GzdCM!`** and the email `<first name>@mzansimetro.example.org`.
+It's public, so change it before storing anything real ([how](database/README.md#sign-in-accounts)).
 
-| Persona | Id | Role | Does |
+The judge-demo cast, in lifecycle order:
+
+| Person | Email | Role | Does |
 | --- | --- | --- | --- |
-| Thandi Nkosi | `u-thandi` | Department Officer, Environmental Services | Records public needs, requests budget |
-| Sipho Mokoena | `u-sipho` | Department Manager, Environmental Services | First-line approval, manages implementations |
-| Lerato Dlamini | `u-lerato` | Finance Director (CFO) | Approves requests above R50 000 |
-| Johan van der Merwe | `u-johan` | Procurement Officer | Publishes opportunities, evaluates, onboards suppliers, issues POs |
-| Nomsa Zulu | `u-nomsa` | Provider, CleanSight SA (SME) | Discovers opportunities, submits solutions |
-| Ayesha Patel | `u-ayesha` | Executive (City Manager) | Investment → impact dashboard, CIVIC AI briefing |
-| Grace Naidoo | `u-grace` | Auditor | Journey view, audit chain verification |
-| Lindiwe Sithole | `u-lindiwe` | Admin | Business rules, demo reset |
+| Thandi Nkosi | `thandi@mzansimetro.example.org` | Department Officer, Environmental Services | Records public needs, requests budget |
+| Sipho Mokoena | `sipho@mzansimetro.example.org` | Department Manager, Environmental Services | First-line approval, manages implementations |
+| Lerato Dlamini | `lerato@mzansimetro.example.org` | Finance Director (CFO) | Approves requests above R50 000 |
+| Johan van der Merwe | `johan@mzansimetro.example.org` | Procurement Officer | Publishes opportunities, evaluates, onboards suppliers, issues POs |
+| Nomsa Zulu | `nomsa@mzansimetro.example.org` | Provider, CleanSight SA (SME) | Discovers opportunities, submits solutions |
+| Ayesha Patel | `ayesha@mzansimetro.example.org` | Executive (City Manager) | Investment → impact dashboard, CIVIC AI briefing |
+| Grace Naidoo | `grace@mzansimetro.example.org` | Auditor | Journey view, audit chain verification |
+| Lindiwe Sithole | `lindiwe@mzansimetro.example.org` | Admin | Business rules |
 
-There are more officers, managers and providers under *More personas*.
+There are 23 accounts in total, including more officers, managers and providers (see the `app_user` table).
 
 **Seeded scenario:** the hero need *"Illegal Dumping Monitoring Solution"* (R500 000) is approved, and its opportunity has closed with **3 submissions** (CleanSight R420 000 L1, EcoVision R390 000 L2, GlobalTech R350 000 L4). Two of the three are evaluated, and you score CleanSight live. Supporting stories fill the dashboards: a completed water-leak project with measured impact, an in-progress open-source permit service, an at-risk streetlight project (quotation route), open opportunities, an overdue approval, a rejected request and a draft.
 
@@ -110,7 +118,9 @@ If you run the frontend against this local backend: `VITE_API_PROXY=http://local
 | Env var (backend) | Default | Purpose |
 | --- | --- | --- |
 | `DB_HOST` / `DB_PORT` / `DB_NAME` / `DB_USER` / `DB_PASSWORD` | `localhost` / `3306` / `civicflow` / `civicflow` / `civicflow` | MySQL connection |
-| `SEED_ON_STARTUP` | `true` | Seed demo data when the DB is empty |
+| `AUTH_TOKEN_SECRET` | random per start | Signing key for sign-in tokens (32+ chars) |
+| `AUTH_TOKEN_TTL` | `PT12H` | How long a sign-in lasts |
+| `SEED_ON_STARTUP` / `SEED_USER_PASSWORD` | `false` / empty | Only for [regenerating the SQL script](database/README.md#regenerating-the-script) |
 | `GEMINI_API_KEY` / `GEMINI_MODEL` | empty / `gemini-2.5-flash` | Optional CIVIC AI model |
 | `CORS_ALLOWED_ORIGINS` | `http://localhost:3000,http://localhost:5173` | Dev CORS |
 
@@ -122,7 +132,7 @@ If you run the frontend against this local backend: `VITE_API_PROXY=http://local
 ┌──────────────────────────── docker compose ─────────────────────────────┐
 │  frontend (nginx :3000)             backend (Spring Boot :8080 → 8081)  │
 │  React SPA ──── /api ─────────────▶ web/       REST controllers + DTOs  │
-│  (hash routes, role nav)            security/  demo persona filter      │
+│  (hash routes, role nav)            security/  sign-in token filter      │
 │                                     service/   lifecycle services       │
 │                                     rules/     pure rule engine (JUnit) │
 │                                     ai/        CIVIC AI (Gemini | rules)│
@@ -149,6 +159,7 @@ Data model: 25 normalised tables. See the [ERD with Mermaid diagram](docs/produc
 .
 ├── docker-compose.yml          # mysql + backend + frontend
 ├── .env.example                # optional overrides (ports, DB, GEMINI_API_KEY)
+├── database/                   # civicflow.sql (schema + seeded data for MySQL Workbench / Docker init)
 ├── docs/product/               # Product deliverables A–I (definition, BRS v2.0, ERD, MVP, demo, …)
 ├── specs/                      # SDD: constitution + spec/plan/contract/tasks per feature
 ├── backend/                    # Spring Boot (Maven wrapper included)
@@ -160,8 +171,8 @@ Data model: 25 normalised tables. See the [ERD with Mermaid diagram](docs/produc
 │       ├── service/            # Need, Approval, Opportunity, Submission, Evaluation, Procurement,
 │       │                       # Implementation, Impact, Dashboard, Ecosystem, Audit, Notification, Rule
 │       ├── ai/                 # CivicAiService + GeminiClient
-│       ├── security/           # Demo auth (X-Demo-User) + CurrentUser
-│       ├── seed/               # DemoDataSeeder
+│       ├── security/           # Sign-in tokens, AuthFilter, CurrentUser
+│       ├── seed/               # DemoDataSeeder (generates database/civicflow.sql)
 │       └── web/                # Controllers, DTOs (Dto.java), error handling
 │   └── src/main/resources/db/migration/V1__schema.sql
 └── frontend/                   # React + Vite + Tailwind
@@ -235,7 +246,9 @@ The backend suite includes the spec's worked examples: the scores **90.00 / 84.4
 | Frontend shows "Cannot reach the CIVICFLOW API" | Check `docker compose ps` and `docker compose logs backend`. The backend waits for MySQL to be healthy, so give it ~40 s on the first start. |
 | `./mvnw: bad interpreter` / `\r` errors | The file was checked out with CRLF. The repo's `.gitattributes` forces LF, so re-clone or run `git add --renormalize .` |
 | Slow `npm install` on Windows | Don't clone into a OneDrive-synced folder (e.g. use `C:\dev`). |
-| Demo data looks stale | Admin → Business Rules → **Reset demo data**, or `docker compose down -v && docker compose up`. |
+| Demo data looks stale | `docker compose down -v && docker compose up` (re-imports `civicflow.sql`), or re-run the script in Workbench. |
+| Signed out after a backend restart | Set `AUTH_TOKEN_SECRET` in `.env`. |
+| "Email or password is incorrect" on an old Docker volume | Volumes created before sign-in existed have no passwords: `docker compose down -v && docker compose up`. |
 | Flyway warns "MySQL 8.4 newer than supported" | Harmless for this schema. It's tracked for a Flyway upgrade. |
 
 ---

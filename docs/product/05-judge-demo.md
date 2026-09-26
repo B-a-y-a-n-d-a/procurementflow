@@ -1,6 +1,6 @@
 # F. Judge Demo: "Illegal dumping in Soshanguve: from a problem to 34.7% fewer hotspots"
 
-**Length:** 7 minutes (a 5-minute cut is marked ✂). **Setup:** `docker compose up`, open http://localhost:3000, *Settings → Reset demo data*. Keep two tabs open: the executive dashboard and a working tab.
+**Length:** 7 minutes (a 5-minute cut is marked ✂). **Setup:** start from a freshly imported database (`docker compose down -v && docker compose up`, or re-run `database/civicflow.sql` in MySQL Workbench), open http://localhost:3000 and sign in with the accounts in [database/README.md](../../database/README.md#sign-in-accounts). Use a private window per person, or **Sign out** between steps. Keep two tabs open: the executive dashboard and a working tab.
 
 Seeded starting point: the **Illegal Dumping Monitoring Solution** need (Environmental Services, R500 000) is approved, and its opportunity **OPP-2026-003** has closed with **3 submissions** (CleanSight SA R420 000 L1, EcoVision R390 000 L2, GlobalTech R350 000 L4). Two of the three are already evaluated. Other seeded projects fill the dashboards (a completed water-leak project, an in-progress digital permit service, an at-risk streetlight project, a pending low-value quotation, an overdue approval).
 
@@ -50,5 +50,6 @@ Show the **Executive dashboard**: investment, active opportunities, projects at 
 
 ## Fallbacks
 - **AI key missing or offline:** CIVIC AI shows *Deterministic mode*, with the same grounded content.
-- **Something breaks mid-demo:** *Settings → Reset demo data* (admin) restores everything in seconds.
+- **Something breaks mid-demo:** re-import `database/civicflow.sql` (Workbench: *File → Run SQL Script*; Docker: `docker compose down -v && docker compose up`, about a minute).
+- **Dates:** the imported data is frozen at 26 Sept 2026, so SLA countdowns and "closing soon" labels drift as real time passes. Regenerate the script close to the demo date if that matters ([how](../../database/README.md#regenerating-the-script)).
 - **No time for live scoring:** complete the CleanSight evaluation beforehand and start at the ranking table.
