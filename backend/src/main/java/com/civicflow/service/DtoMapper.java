@@ -113,7 +113,7 @@ public class DtoMapper {
         String providerName = u.getProviderId() == null ? null
                 : providers.findById(u.getProviderId()).map(Provider::getName).orElse(null);
         return new Dto.User(u.getId(), u.getFullName(), u.getEmail(), u.getTitle(), u.getRole(), u.getDepartmentId(),
-                lookup.departmentName(u.getDepartmentId()), u.getProviderId(), providerName);
+                lookup.departmentName(u.getDepartmentId()), u.getProviderId(), providerName, u.isActive(), u.getCreatedAt());
     }
 
     public Dto.Budget budget(BudgetCalculator.Summary s) {

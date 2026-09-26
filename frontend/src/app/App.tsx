@@ -26,6 +26,7 @@ import MapPage from '../features/map/MapPage';
 import AuditLog from '../features/audit/AuditLog';
 import AiPage from '../features/ai/AiPage';
 import Settings from '../features/settings/Settings';
+import AdminUsersPage from '../features/admin/AdminUsersPage';
 
 type Route = { pattern: string; render: (p: Record<string, string>) => React.ReactNode };
 
@@ -50,6 +51,7 @@ const ROUTES: Route[] = [
   { pattern: '/providers/:id', render: (p) => <ProviderDetail id={p.id} /> },
   { pattern: '/map', render: () => <MapPage /> },
   { pattern: '/audit', render: () => <AuditLog /> },
+  { pattern: '/admin/users', render: () => <AdminUsersPage /> },
   { pattern: '/ai', render: () => <AiPage /> },
   { pattern: '/settings', render: () => <Settings /> },
 ];

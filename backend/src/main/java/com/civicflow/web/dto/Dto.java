@@ -1,9 +1,11 @@
 package com.civicflow.web.dto;
 
 import com.civicflow.domain.enums.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -38,7 +40,32 @@ public final class Dto {
     }
 
     public record User(String id, String fullName, String email, String title, UserRole role, String departmentId,
-                       String departmentName, String providerId, String providerName) {
+                       String departmentName, String providerId, String providerName, boolean active, Instant createdAt) {
+    }
+
+    public record CreateUserRequest(@JsonProperty("fullName") @NotBlank @Size(max = 150) String fullName,
+                                   @JsonProperty("email") @NotBlank @Email @Size(max = 200) String email,
+                                   @JsonProperty("title") @NotBlank @Size(max = 150) String title,
+                                   @JsonProperty("role") @NotNull UserRole role,
+                                   @JsonProperty("departmentId") String departmentId,
+                                   @JsonProperty("providerId") String providerId,
+                                   @JsonProperty("password") @NotBlank @Size(min = 8, max = 200) String password,
+                                   @JsonProperty("active") boolean active) {
+    }
+
+    public record UpdateUserRequest(@JsonProperty("fullName") @NotBlank @Size(max = 150) String fullName,
+                                   @JsonProperty("email") @NotBlank @Email @Size(max = 200) String email,
+                                   @JsonProperty("title") @NotBlank @Size(max = 150) String title,
+                                   @JsonProperty("role") @NotNull UserRole role,
+                                   @JsonProperty("departmentId") String departmentId,
+                                   @JsonProperty("providerId") String providerId,
+                                   @JsonProperty("active") boolean active) {
+    }
+
+    public record ChangeRoleRequest(@JsonProperty("role") @NotNull UserRole role) {
+    }
+
+    public record ChangeStatusRequest(@JsonProperty("active") boolean active) {
     }
 
     public record LoginRequest(@NotBlank @Size(max = 200) String email, @NotBlank @Size(max = 200) String password) {
