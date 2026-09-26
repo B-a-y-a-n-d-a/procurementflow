@@ -221,6 +221,8 @@ cd backend && ./mvnw verify          # JUnit: rule engine + end-to-end lifecycle
 cd frontend && npm run lint          # TypeScript type-check
 cd frontend && npm run build         # production build
 ```
+CI (`.github/workflows/ci.yml`) runs the same three checks plus `docker compose build` on every PR and push to `main`.
+
 The backend suite includes the spec's worked examples: the scores **90.00 / 84.42 / 76.00**, the impact **−34.69%**, and a full hero lifecycle from evaluation to measured impact with audit-chain verification.
 
 ---
